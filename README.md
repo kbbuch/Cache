@@ -14,5 +14,3 @@ Steps:
   o REPL_POLICY: Positive int. 0 for LRU, 1 for FIFO, 2 for LFU.
   o INCLUSION: Positive int. 0 for non-inclusive, 1 for inclusive and 2 for exclusive.
   o TRACE_FILE: Character string. Full name of trace file including any extensions.
-  
- 
