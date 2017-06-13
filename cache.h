@@ -46,13 +46,20 @@ class cache{
 		int hit_block;
 		
 		char* name;
-	
+		
 	public:
 	
 		//public members
 		int size;
 		int associativity;
 		
+		//debug
+		int rdmiss_empty_cache;
+		int wrmiss_empty_cache;
+		int cache_empty;
+		int lru;
+		
+		//split address
 		long long int tag;
 		int index;
 		
@@ -76,6 +83,9 @@ class cache{
 		
 		//updating the cache stats on a hit
 		void update_on_hit(int index, char operation, int replacement_policy);
+		
+		//actions (invalidation) on L2 upon hit for exclusive
+		void update_on_hit_exclusive(int index);
 	
 		//checking if the cacheline has any space left
 		bool is_cacheline_empty(int index);
@@ -83,8 +93,14 @@ class cache{
 		//installing block when line found empty
 		void install_block(int index, long long int tag, char operation, int replacement_policy);
 		
+		//installing block when line found empty for EXCLUSIVE
+		void install_block(int index, long long int tag, char operation, int replacement_policy, int inclusion_policy, bool d_b);
+		
 		//updating according to LRU
 		void LRU_update(int index, long long int tag, char operation);
+		
+		//updating according to LRU for EXCLUSIVE
+		void LRU_update(int index, long long int tag, char operation, bool d_b);
 		
 		//updating according to FIFO
 		void FIFO_update(int index, long long int tag, char operation);
@@ -100,6 +116,7 @@ class cache{
 		
 		//debug print cache
 		void debug_print();
+		void print_valid_bit();
 		
 		//reconstructing the address for the evicted block from L1
 		long long int reconstruct_address(long long int tag_temp);
@@ -107,13 +124,27 @@ class cache{
 		//Full read/write operation on a cache
 		void operate_on_cache(char operation, int replacement_policy);
 		
+		//Read/write operation on a cache for exclusive policy
+		void operate_on_cache_exclusive(char operation, int replacement_policy, int inclusion_policy, bool d_b);
+		
 		//act according to inclusion policy
 		void action_acc_to_inclusion_policy(char L2_op, int replacement_policy, int inclusion_policy);
+		
+		//act according to inclusion policy for EXCLUSIVE
+		void action_acc_to_inclusion_policy(char L2_op, int replacement_policy, int inclusion_policy, bool d_b);
 		
 		//installing block along with check for L2
 		void install_block(int index, long long int tag, char operation, int replacement_policy, int inclusion_policy, cache *L2);
 		
 		//updating according to LRU for L1+L2
 		void LRU_update(int index, long long int tag, char operation, int replacement_policy, int inclusion_policy, cache *L2);
+		
+		//updating according to FIFO for L1+L2
+		void FIFO_update(int index, long long int tag, char operation, int replacement_policy, int inclusion_policy, cache *L2);
+
+		//updating according to LFU for L1+L2
+		void LFU_update(int index, long long int tag, char operation, int replacement_policy, int inclusion_policy, cache *L2);
+		
+		
 };
 

@@ -10,6 +10,9 @@ cache::cache(int size_in, int assoc_in, int blocksize){
 	
 	writes = 0;
 	write_miss = 0;
+	cache_empty = 0;
+	
+	lru = 0;
 	
 	miss_rate = 0;
 	writebacks = 0;
@@ -18,6 +21,8 @@ cache::cache(int size_in, int assoc_in, int blocksize){
 		number_of_sets = 0;
 	else
 		number_of_sets=(size)/(associativity * blocksize); 
+	
+	//printf("Number of sets = %d and associativity = %d\n", number_of_sets, associativity);
 
 	index_bits = (log(number_of_sets))/log(2);
 	offset_bits = (log(blocksize))/log(2);
@@ -31,21 +36,21 @@ cache::cache(int size_in, int assoc_in, int blocksize){
 	
 	for(int i=0; i < number_of_sets; i++){
 		
-		tag_array[i] = new long long int[number_of_sets];
+		tag_array[i] = new long long int[associativity];
 		valid_bit[i] = new bool[associativity];
 		dirty_bit[i] = new bool[associativity];
-		age[i] = new int[number_of_sets];
+		age[i] = new int[associativity];
 	}
-	
+	if(associativity == 16)
 	for(int i = 0; i < number_of_sets; i++){
 		for(int j = 0; j < associativity; j++){
-			
 			tag_array[i][j] = 0;
 			age[i][j] = 0;
 			valid_bit[i][j] = false;
 			dirty_bit[i][j] = false;
 		}
 	}
+	//printf("Size of tag array = %d\t\n",sizeof(tag_array));
 }
 
 cache:: ~cache(){
@@ -99,7 +104,6 @@ void cache::update_on_hit(int index, char operation, int replacement_policy){
 			
 			if(operation == 'w')
 				dirty_bit[index][hit_block] = true;
-			
 		}
 		else if(replacement_policy == 1){
 			//do nothing to the age
@@ -120,7 +124,7 @@ void cache::update_on_hit(int index, char operation, int replacement_policy){
 }
 
 bool cache::is_cacheline_empty(int index){
-	
+
 	for(int i=0; i < associativity; i++){
 		if(valid_bit[index][i] == false){
 			empty_block = i;
@@ -144,8 +148,29 @@ void cache::install_block(int index, long long int tag, char operation, int repl
 		write_miss++;
 		dirty_bit[index][empty_block] = true;
 	}
-	else if(operation == 'r')
+	else if(operation == 'r'){
 		read_miss++;
+	}
+	else{
+		printf("-x-x-x-x-x--x-x-x-x-x-x-x\n          Error in operation        \n-x-x-x-x-x--x-x-x-x-x-x-x");
+		exit(0);
+	}
+	
+}
+
+void cache::install_block(int index, long long int tag, char operation, int replacement_policy, int inclusion_policy, bool d_b){
+	
+	if(replacement_policy != 2)
+		age_increment(index);
+	
+	tag_array[index][empty_block] = tag;
+	valid_bit[index][empty_block] = true;
+	age[index][empty_block] = 1;
+	dirty_bit[index][empty_block] = d_b;
+	
+	if(operation == 'w'){
+		write_miss++;
+	}
 	else{
 		printf("-x-x-x-x-x--x-x-x-x-x-x-x\n          Error in operation        \n-x-x-x-x-x--x-x-x-x-x-x-x");
 		exit(0);
@@ -182,7 +207,36 @@ void cache::LRU_update(int index, long long int tag, char operation){
 	else{		
 		printf("-x-x-x-x-x--x-x-x-x-x-x-x\n          Error in operation        \n-x-x-x-x-x--x-x-x-x-x-x-x");
 		exit(0);
-	}		
+	}
+}
+
+void cache::LRU_update(int index, long long int tag, char operation, bool d_b){
+	
+	int max = -200, evict_block = 0;
+	
+	for(int i = 0; i < associativity; i++){
+		if(age[index][i] > max){
+			max = age[index][i];
+			evict_block = i;
+		}	
+	}
+	
+	age_increment(index);
+	
+	if(dirty_bit[index][evict_block] == true)
+		writebacks++;
+	
+	tag_array[index][evict_block] = tag;
+	age[index][evict_block] = 1;
+	dirty_bit[index][evict_block] = d_b;
+	
+	if(operation == 'w'){
+		write_miss++;
+	}
+	else{		
+		printf("-x-x-x-x-x--x-x-x-x-x-x-x\n          Error in operation        \n-x-x-x-x-x--x-x-x-x-x-x-x");
+		exit(0);
+	}
 }
 
 void cache::FIFO_update(int index, long long int tag, char operation){
@@ -230,11 +284,8 @@ void cache::LFU_update(int index, long long int tag, char operation){
 		}
 	}
 	
-	//printf("index = %d, evict_block = %d\n", index, evict_block);
-	
 	if(dirty_bit[index][evict_block] == true)
 		writebacks++;
-	//printf("here in LFU_update\n");
 	
 	tag_array[index][evict_block] = tag;
 	age[index][evict_block] = 1 + min;
@@ -258,11 +309,11 @@ void cache::operate_on_cache(char operation, int replacement_policy){
 	if(this->is_a_hit(this->index, this->tag)){
 		this->update_on_hit(this->index, operation, replacement_policy);
 	}
-	else
+	else{
 		if(this->is_cacheline_empty(this->index)){
 			this->install_block(this->index, this->tag, operation, replacement_policy);
 		}
-		else
+		else{
 			if(replacement_policy == LRU){
 				this->LRU_update(this->index, this->tag, operation);
 			}
@@ -273,12 +324,14 @@ void cache::operate_on_cache(char operation, int replacement_policy){
 				this->LFU_update(this->index, this->tag, operation);
 			}
 			else if(replacement_policy == psuedo_LRU){
-				
+				printf("\n\n-x-x-x-x-x-x-x-x-x-x-x-------- psuedo_LRU under development-------x-x-x-x-x-x-x-x-x-x-x\n\n");				
 			}
 			else{
 				printf("-x-x-x-x-x-x-x-x\n     error in replacement policy    \n-x-x-x-x-x-x-x-x");
 				exit(0);
 			}
+		}
+	}
 } 
 
 void cache::age_increment(int index){
@@ -299,10 +352,20 @@ void cache::print_stats(const char* name){
 }
 
 void cache::debug_print(){
+	printf("printing tag array:\n");
+	for(int i = 0; i < number_of_sets; i++){
+		for(int j = 0; j < associativity; j++){
+			printf("V = %d\tT = %x\tD = %d\t",valid_bit[i][j], tag_array[i][j], dirty_bit[i][j]);
+		}
+		printf("\n");
+	}
+}
+
+void cache::print_valid_bit(){
 	
 	for(int i = 0; i < number_of_sets; i++){
 		for(int j = 0; j < associativity; j++){
-			printf("%x\t",tag_array[i][j]);
+			printf("%x\t",valid_bit[i][j]);
 		}
 		printf("\n");
 	}
