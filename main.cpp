@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
 		
 		k++;
 		int c = fscanf(fp,"%c %x\n", &operation, &address);
-		if(k>10) break;
+		//if(k>10) break;
 		//printf("\ninput no. C = %d\n",k);
 		if(c == EOF) break;
 		
@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
 	
 	//printf("L2 rd_misses for when L2 is still vacant = %d\n", L2->rdmiss_empty_cache);
 	//printf("L2 wr_misses for when L2 is still vacant = %d\n", L2->wrmiss_empty_cache);
-	printf("no. of times L2 found vacant = %d\n", L2->cache_empty);
+	//printf("no. of times L2 found vacant = %d\n", L2->cache_empty);
 	//printf("no. of times L1 had to do LRU operation = %d\n", L1->lru);
 	
 	if(L1 != NULL) delete L1;

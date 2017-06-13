@@ -88,6 +88,12 @@ void cache::LRU_update(int index, long long int tag, char operation, int replace
 	if(operation == 'w'){
 		write_miss++;
 		dirty_bit[index][evict_block] = true;
+		if(L2->lru == 1){
+			L2->lru = 0;
+			//printf("here once?\n");
+			//dirty_bit[index][evict_block] = L2->dirty_bit[L2->index][L2->hit_block];
+			L2->dirty_bit[L2->index][L2->hit_block] = false;
+		}
 	}
 	else if(operation == 'r'){
 		read_miss++;
