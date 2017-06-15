@@ -16,6 +16,8 @@ cache::cache(int size_in, int assoc_in, int blocksize){
 	
 	miss_rate = 0;
 	writebacks = 0;
+	address = 0;
+	is_evicted = false;
 	
 	if(associativity == 0)
 		number_of_sets = 0;
@@ -67,6 +69,7 @@ void cache::split_address(long long int address){
 	tag = address >> (offset_bits + index_bits);
 	blockshift = address >> offset_bits;
 	index = blockshift & mask;	
+	
 }
 
 void cache::update_read_write(char operation){
@@ -102,8 +105,12 @@ void cache::update_on_hit(int index, char operation, int replacement_policy){
 			
 			age[index][hit_block] = 1;
 			
-			if(operation == 'w')
+//printf("y no dirty bit high?\n");
+			if(operation == 'w'){
 				dirty_bit[index][hit_block] = true;
+				//printf("dirty bit[%d][%d] = %d", index, hit_block, dirty_bit[index][hit_block]);
+			}
+				//dirty_bit[index][hit_block] = true;
 		}
 		else if(replacement_policy == 1){
 			//do nothing to the age
@@ -139,7 +146,7 @@ void cache::install_block(int index, long long int tag, char operation, int repl
 	
 	if(replacement_policy != 2)
 		age_increment(index);
-	
+
 	tag_array[index][empty_block] = tag;
 	valid_bit[index][empty_block] = true;
 	age[index][empty_block] = 1;
@@ -352,10 +359,11 @@ void cache::print_stats(const char* name){
 }
 
 void cache::debug_print(){
-	printf("printing tag array:\n");
+	printf("printing tag array:\n\n");
 	for(int i = 0; i < number_of_sets; i++){
 		for(int j = 0; j < associativity; j++){
 			printf("V = %d\tT = %x\tD = %d\t",valid_bit[i][j], tag_array[i][j], dirty_bit[i][j]);
+			//printf("T = %x\t",tag_array[i][j]);
 		}
 		printf("\n");
 	}

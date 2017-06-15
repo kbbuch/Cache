@@ -46,6 +46,8 @@ class cache{
 		int hit_block;
 		
 		char* name;
+		long long int address;
+		bool is_evicted;
 		
 	public:
 	
@@ -102,6 +104,9 @@ class cache{
 		//updating according to LRU for EXCLUSIVE
 		void LRU_update(int index, long long int tag, char operation, bool d_b);
 		
+		//updating according to LRU for INCLUSIVE
+		long long int LRU_update_inclusive(int index, long long int tag, char operation, bool d_b);
+		
 		//updating according to FIFO
 		void FIFO_update(int index, long long int tag, char operation);
 		
@@ -127,6 +132,9 @@ class cache{
 		//Read/write operation on a cache for exclusive policy
 		void operate_on_cache_exclusive(char operation, int replacement_policy, int inclusion_policy, bool d_b);
 		
+		//Read/write operation on a cache for inclusive policy
+		void operate_on_cache_inclusive(char operation, int replacement_policy, bool d_b);
+		
 		//act according to inclusion policy
 		void action_acc_to_inclusion_policy(char L2_op, int replacement_policy, int inclusion_policy);
 		
@@ -145,6 +153,11 @@ class cache{
 		//updating according to LFU for L1+L2
 		void LFU_update(int index, long long int tag, char operation, int replacement_policy, int inclusion_policy, cache *L2);
 		
+		//back_invalidation
+		void invalidate_in_L1();
+		
+		//inclusive LRU Part
+		void inclusive_LRU_part(cache *L2, char operation, int replacement_policy, int evict_block);
 		
 };
 
