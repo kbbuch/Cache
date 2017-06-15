@@ -5,10 +5,10 @@ WARN = -Wall
 CFLAGS = $(OPT) $(WARN) 
 
 # List all your .cc files here (source files, excluding header files)
-SIM_SRC = main.cpp cache_L1.cpp cache_L2.cpp cache.h
+SIM_SRC = main.cpp cache_L1.cpp cache_L2.cpp inclusive.cpp cache.h
 
 # List corresponding compiled object files here (.o files)
-SIM_OBJ = main.o cache_L1.o cache_L2.o
+SIM_OBJ = main.o cache_L1.o cache_L2.o inclusive.o
  
 #################################
 
@@ -20,7 +20,7 @@ all: sim_cache
 
 # rule for making sim_cache
 
-sim_cache: $(SIM_OBJ)
+sim_cache: $(SIM_OBJ) 
 	$(CC) -o sim_cache $(CFLAGS) $(SIM_OBJ) -lm
 	@echo "-----------DONE WITH SIM_CACHE-----------"
 
@@ -28,7 +28,7 @@ sim_cache: $(SIM_OBJ)
 # generic rule for converting any .cc file to any .o file
  
 .cc.o:
-	$(CC) $(CFLAGS)  -c $*.cc
+	$(CC) $(CFLAGS)  -c $*.cpp
 
 
 # type "make clean" to remove all .o files plus the sim_cache binary
