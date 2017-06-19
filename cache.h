@@ -60,6 +60,7 @@ class cache{
 		int wrmiss_empty_cache;
 		int cache_empty;
 		int lru;
+		int help;
 		
 		//split address
 		long long int tag;
@@ -158,6 +159,9 @@ class cache{
 		
 		//inclusive LRU Part
 		void inclusive_LRU_part(cache *L2, char operation, int replacement_policy, int evict_block);
+		
+		//increment writebacks
+		void increment_writebacks();
 		
 };
 

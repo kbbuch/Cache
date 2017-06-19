@@ -7,6 +7,8 @@ cache::cache(int size_in, int assoc_in, int blocksize){
 	
 	reads = 0;
 	read_miss = 0;
+	rdmiss_empty_cache = 0;
+	help = 0;
 	
 	writes = 0;
 	write_miss = 0;
@@ -85,9 +87,11 @@ void cache::update_read_write(char operation){
 }
 
 bool cache::is_a_hit(int index, long long int tag){
+	//printf("am i here atleast?\n");
 	for(int i=0; i < associativity; i++){
 		if(valid_bit[index][i] == true && tag_array[index][i] == tag){
-			hit_block = i;			
+			hit_block = i;	
+			//printf("yes , matched!\n");
 			return true;
 		}
 	}
@@ -105,12 +109,9 @@ void cache::update_on_hit(int index, char operation, int replacement_policy){
 			
 			age[index][hit_block] = 1;
 			
-//printf("y no dirty bit high?\n");
 			if(operation == 'w'){
 				dirty_bit[index][hit_block] = true;
-				//printf("dirty bit[%d][%d] = %d", index, hit_block, dirty_bit[index][hit_block]);
 			}
-				//dirty_bit[index][hit_block] = true;
 		}
 		else if(replacement_policy == 1){
 			//do nothing to the age
@@ -359,7 +360,8 @@ void cache::print_stats(const char* name){
 }
 
 void cache::debug_print(){
-	printf("printing tag array:\n\n");
+	printf("printing tag array:\n");
+	printf("number of sets: %d\n", number_of_sets);
 	for(int i = 0; i < number_of_sets; i++){
 		for(int j = 0; j < associativity; j++){
 			printf("V = %d\tT = %x\tD = %d\t",valid_bit[i][j], tag_array[i][j], dirty_bit[i][j]);

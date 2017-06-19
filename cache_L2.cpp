@@ -1,7 +1,43 @@
 #include "cache.h"
 
 void cache::install_block(int index, long long int tag, char operation, int replacement_policy, int inclusion_policy, cache *L2){
+	
+	char L2_op = 'r';
+	bool d_b = false;
+	L2->update_read_write(L2_op);
+	if(inclusion_policy == NINE){
+		L2->action_acc_to_inclusion_policy(L2_op, replacement_policy, inclusion_policy);
+	}
+	else if(inclusion_policy == EXCLUSIVE){
+		L2->action_acc_to_inclusion_policy(L2_op, replacement_policy, inclusion_policy, d_b);
+	}
+	else if(inclusion_policy == INCLUSIVE){
+		L2->action_acc_to_inclusion_policy(L2_op, replacement_policy, inclusion_policy, d_b);
+		
+		if(L2->is_evicted){
+			//printf("helle here?\n");
+			L2->is_evicted = false;
+			
+			this->split_address(L2->address);
+			
+			if(is_a_hit(this->index, this->tag)){
+				
+				//printf("back invalidating %x from %d set in L1\n", this->tag, this->index);
+				invalidate_in_L1();
+				//printf("index = %d and hit_block = %d\n", this->index, hit_block);
+				if(dirty_bit[this->index][hit_block] == true){
+					//printf("here too?\n");
+					writebacks++;
+					//writebacks++;
+					L2->increment_writebacks();
+					dirty_bit[index][hit_block] == false;
+				}
+			}
+		}
+	}
+	
 	cache_empty++;
+	rdmiss_empty_cache++;
 	if(replacement_policy != 2)
 		age_increment(index);
 	
@@ -20,30 +56,6 @@ void cache::install_block(int index, long long int tag, char operation, int repl
 	else{
 		printf("-x-x-x-x-x--x-x-x-x-x-x-x\n          Error in operation        \n-x-x-x-x-x--x-x-x-x-x-x-x");
 		exit(0);
-	}
-	
-	char L2_op = 'r';
-	bool d_b = false;
-	L2->update_read_write(L2_op);
-	if(inclusion_policy == NINE){
-		L2->action_acc_to_inclusion_policy(L2_op, replacement_policy, inclusion_policy);
-	}
-	else if(inclusion_policy == EXCLUSIVE){
-		L2->action_acc_to_inclusion_policy(L2_op, replacement_policy, inclusion_policy, d_b);
-	}
-	else if(inclusion_policy == INCLUSIVE){
-		L2->action_acc_to_inclusion_policy(L2_op, replacement_policy, inclusion_policy, d_b);
-		
-		if(L2->is_evicted){
-			
-			L2->is_evicted = false;
-			
-			this->split_address(L2->address);
-			
-			if(is_a_hit(this->index, this->tag)){
-				invalidate_in_L1();
-			}
-		}
 	}
 }
 
@@ -314,4 +326,9 @@ void cache::action_acc_to_inclusion_policy(char L2_op, int replacement_policy, i
 		printf("-x-x-x-x-x--x-x-x-x-x-x-x\n          Error in inclusion policy        \n-x-x-x-x-x--x-x-x-x-x-x-x");
 		exit(0);
 	}
+}
+
+void cache::increment_writebacks(){
+	
+	writebacks++;
 }
