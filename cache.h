@@ -55,12 +55,8 @@ class cache{
 		int size;
 		int associativity;
 		
-		//debug
-		int rdmiss_empty_cache;
-		int wrmiss_empty_cache;
-		int cache_empty;
-		int lru;
-		int help;
+		//exclusive
+		int exclusive;
 		
 		//split address
 		long long int tag;
@@ -122,7 +118,6 @@ class cache{
 		
 		//debug print cache
 		void debug_print();
-		void print_valid_bit();
 		
 		//reconstructing the address for the evicted block from L1
 		long long int reconstruct_address(long long int tag_temp);
@@ -162,6 +157,5 @@ class cache{
 		
 		//increment writebacks
 		void increment_writebacks();
-		
 };
 

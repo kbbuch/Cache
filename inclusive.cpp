@@ -11,7 +11,6 @@ void cache::operate_on_cache_inclusive(char operation, int replacement_policy, b
 		}
 		else{
 			if(replacement_policy == LRU){
-				//printf("hello here?\n");
 				address = this->LRU_update_inclusive(this->index, this->tag, operation, d_b);
 				if(operation == 'r') is_evicted = true;
 			}
@@ -46,11 +45,9 @@ long long int cache::LRU_update_inclusive(int index, long long int tag, char ope
 	age_increment(index);
 	
 	if(dirty_bit[index][evict_block] == true){
-		//printf("here too for 7410?\n");
 		writebacks++;
 		
 	}
-	//printf("dB from within LRU update = %d\n",d_b);		
 	
 	long long int tag_temp = tag_array[index][evict_block];
 	
@@ -82,14 +79,11 @@ void cache::invalidate_in_L1(){
 
 void cache::inclusive_LRU_part(cache *L2, char operation, int replacement_policy, int evict_block){
 	
-	cache_empty++;
 	bool d_b;
 	d_b = dirty_bit[index][evict_block];
-	//printf("dB = %d\n", d_b);
 	
 	if(dirty_bit[index][evict_block] == true){
 		writebacks++;
-		//printf("doint write back as the dirty bit of the evicted block is high\n");
 		char L2_op = 'w';
 		
 		// convert the address that is being evicted to L2 tag;
@@ -98,22 +92,14 @@ void cache::inclusive_LRU_part(cache *L2, char operation, int replacement_policy
 		L2->split_address(this->reconstruct_address(tag_temp));
 		
 		L2->update_read_write(L2_op);
-		//printf("L1->tag = %x\n", tag);
-		//printf("L2->tag = %x\n", L2->tag);
 		L2->action_acc_to_inclusion_policy(L2_op, replacement_policy, INCLUSIVE, d_b);
 	}
 	
 	char L2_op = 'r';
 	L2->split_address(this->reconstruct_address(tag));
 	L2->update_read_write(L2_op);
-	//printf("L1->tag = %x\n", tag);
-	//printf("L2->tag = %x\n", L2->tag);
-	//d_b = false;
-	//printf("what is getting evicted? ANS: %x\n",tag_temp);
-	//printf("what are we placing in L2 and where? ANS: %x in set %d\n",L2->tag, L2->index);
 	L2->action_acc_to_inclusion_policy(L2_op, replacement_policy, INCLUSIVE, d_b);
 	
-	//printf("idex for L1 = %d\n", index);
 	long long int original_tag = tag;
 	int original_index = index;
 	//evicting the L2_eviction from L1
@@ -123,19 +109,14 @@ void cache::inclusive_LRU_part(cache *L2, char operation, int replacement_policy
 		this->split_address(L2->address);
 		
 		if(is_a_hit(this->index, this->tag)){
-			//printf("back invalidating %x from %d set in L1\n", tag, index);
 			invalidate_in_L1();
-			//printf("index = %d and hit_block = %d and its dirty bit = %d\n", index, hit_block, dirty_bit[index][hit_block]);
 			if(dirty_bit[index][hit_block] == true){
-				//printf("here too?\n");
 				writebacks++;
-				//writebacks++;
 				L2->increment_writebacks();
 				dirty_bit[index][hit_block] == false;
 			}
 		}
 	}
-	//printf("idex for L1 = %d\n", index);
 	tag_array[original_index][evict_block] = original_tag;
 	valid_bit[original_index][evict_block] = true;
 	age[original_index][evict_block] = 1;

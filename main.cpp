@@ -26,20 +26,13 @@ int main(int argc, char *argv[])
 	
 	while(1){
 		
-		k++;
 		int c = fscanf(fp,"%c %x\n", &operation, &address);
-		//if(k>50000) break;	
-		//printf("input no. = %d\n",k);
-		//printf("operation = '%c' and address = %x\n", operation, address);
 		if(c == EOF) break;
 		
 		//address split to get index
 		L1->split_address(address);
 		L2->split_address(address);
 		
-		//if(L2->index == 5) printf("\nL1 tag = %x and index = %d", L1->tag, L1->index);
-		//if(L2->index == 5) printf("\nL2 tag = %x and index = %d\n\n", L2->tag, L2->index);
-		//printf("operation = '%c' and address = %x with L1 index = %d\n", operation, L1->tag, L1->index);
 		//upadting L1 read and writes
 		L1->update_read_write(operation);
 		
@@ -57,7 +50,6 @@ int main(int argc, char *argv[])
 				}
 				else{
 					if(replacement_policy == LRU){
-						//printf("here in lRU?\n");
 						L1->LRU_update(L1->index, L1->tag, operation, replacement_policy, inclusion_policy, L2);
 					}
 					else if(replacement_policy == FIFO){
@@ -77,36 +69,13 @@ int main(int argc, char *argv[])
 				}
 			}
 		}
-		
-		//L2->print_valid_bit();
-		if(k>7505 && k<7511){
-			//printf("\n");
-			//const char* L1_name = "L1";
-			//const char* L2_name = "L2";
-			//L1->debug_print();
-			//L2->debug_print();
-			//L1->print_stats(L1_name);
-			//if(L2->size != 0 && L2->associativity != 0) L2->print_stats(L2_name);
-			//printf("\nL1 tag = %x and index = %d", L1->tag, L1->index);
-			//printf("\nL2 tag = %x and index = %d\n\n", L2->tag, L2->index);
-			//printf("nu of empty finds in L1 = %d\n", L1->rdmiss_empty_cache);
-			
-		}
 	}
 	
 	const char* L1_name = "L1";
 	const char* L2_name = "L2";
 	
-	//L1->debug_print();
-	//printf("\n\n");
-	
 	L1->print_stats(L1_name);
 	if(L2->size != 0 && L2->associativity != 0) L2->print_stats(L2_name);
-	
-	//printf("L1 misses when still vacant = %d\n", L1->rdmiss_empty_cache);
-	//printf("L2 wr_misses for when L2 is still vacant = %d\n", L2->wrmiss_empty_cache);
-	//printf("no. of times L2 found vacant = %d\n", L1->cache_empty);
-	//printf("no. of times L1 had to do LRU operation = %d\n", L1->lru);
 	
 	if(L1 != NULL) delete L1;
 	if(L2 != NULL) delete L2;

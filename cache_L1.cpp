@@ -7,14 +7,11 @@ cache::cache(int size_in, int assoc_in, int blocksize){
 	
 	reads = 0;
 	read_miss = 0;
-	rdmiss_empty_cache = 0;
-	help = 0;
 	
 	writes = 0;
 	write_miss = 0;
-	cache_empty = 0;
 	
-	lru = 0;
+	exclusive = 0;
 	
 	miss_rate = 0;
 	writebacks = 0;
@@ -26,8 +23,6 @@ cache::cache(int size_in, int assoc_in, int blocksize){
 	else
 		number_of_sets=(size)/(associativity * blocksize); 
 	
-	//printf("Number of sets = %d and associativity = %d\n", number_of_sets, associativity);
-
 	index_bits = (log(number_of_sets))/log(2);
 	offset_bits = (log(blocksize))/log(2);
 	
@@ -54,7 +49,6 @@ cache::cache(int size_in, int assoc_in, int blocksize){
 			dirty_bit[i][j] = false;
 		}
 	}
-	//printf("Size of tag array = %d\t\n",sizeof(tag_array));
 }
 
 cache:: ~cache(){
@@ -87,11 +81,10 @@ void cache::update_read_write(char operation){
 }
 
 bool cache::is_a_hit(int index, long long int tag){
-	//printf("am i here atleast?\n");
+
 	for(int i=0; i < associativity; i++){
 		if(valid_bit[index][i] == true && tag_array[index][i] == tag){
 			hit_block = i;	
-			//printf("yes , matched!\n");
 			return true;
 		}
 	}
@@ -355,27 +348,17 @@ void cache::print_stats(const char* name){
 	printf("=> number of %s read_misses 		= 	%d\n", name, read_miss);
 	printf("=> number of %s writes 			= 	%d\n", name, writes);
 	printf("=> number of %s write_misses 		= 	%d\n", name, write_miss);
-	printf("=> number of %s writebacks 		= 	%d\n\n", name, writebacks);
+	printf("=> number of %s writebacks 		= 	%d\n", name, writebacks);
+	printf("=> %s miss rate				=	%.4f\n\n", name, (float)(read_miss + write_miss)/(reads + writes));
 	
 }
 
 void cache::debug_print(){
 	printf("printing tag array:\n");
-	printf("number of sets: %d\n", number_of_sets);
 	for(int i = 0; i < number_of_sets; i++){
 		for(int j = 0; j < associativity; j++){
 			printf("V = %d\tT = %x\tD = %d\t",valid_bit[i][j], tag_array[i][j], dirty_bit[i][j]);
 			//printf("T = %x\t",tag_array[i][j]);
-		}
-		printf("\n");
-	}
-}
-
-void cache::print_valid_bit(){
-	
-	for(int i = 0; i < number_of_sets; i++){
-		for(int j = 0; j < associativity; j++){
-			printf("%x\t",valid_bit[i][j]);
 		}
 		printf("\n");
 	}
